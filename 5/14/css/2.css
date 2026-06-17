@@ -1,0 +1,121 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Pretendard', sans-serif;
+}
+
+body {
+    background-color: #f2f2f0;
+    color: #333;
+    padding: 60px 20px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.subtitle {
+    font-size: 0.8rem;
+    color: #bbb;
+    letter-spacing: 2px;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 10px 0;
+}
+
+.description {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.test-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.question-section {
+    background-color: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 20px;
+}
+
+.q-number {
+    font-size: 0.8rem;
+    color: #ddd;
+    font-weight: bold;
+}
+
+.q-text {
+    font-size: 1.1rem;
+    margin: 15px 0 25px 0;
+}
+
+.answer-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* 답변 카드 버튼 */
+.answer-card {
+    background-color: #f6f6f6;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 130px;
+}
+
+
+.answer-card:hover {
+    background-color: #fff;
+    border-color: #eee;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transform: translateY(-5px);
+}
+
+.choice {
+    font-size: 0.7rem;
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.answer-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #444;
+    word-break: keep-all; /* 단어 단위 줄바꿈 적용 */
+}
+
+.type-tag {
+    font-size: 0.7rem;
+    color: #ddd;
+    background-color: #fff;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-top: auto;
+    align-self: flex-start;
+}
+
+.info-footer {
+    background-color: #fff;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    margin-top: 30px;
+}
+
+.info-footer p {
+    font-size: 0.85rem;
+    color: #aaa;
+}

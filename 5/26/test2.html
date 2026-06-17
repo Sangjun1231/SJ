@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>타이포 랩 — 가독성 테스트 도구</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* ══════════════════════════════════════
+   테마 변수
+══════════════════════════════════════ */
+[data-theme="dark"] {
+  --bg:       #0e0e0e;
+  --surface:  #161616;
+  --surface2: #1e1e1e;
+  --border:   #272727;
+  --border2:  #3a3a3a;
+  --text:     #f0f0f0;
+  --text2:    #999;
+  --text3:    #555;
+  --input-bg: #111111;
+  --sb-bg:    #0c0c0c;
+  --preview-bg: #1a1a1a;
+  --slider-track: #2a2a2a;
+  --shadow:   rgba(0,0,0,0.5);
+  --theme-icon: "🌙";
+}
+[data-theme="light"] {
+  --bg:       #f4f4f5;
+  --surface:  #ffffff;
+  --surface2: #f0f0f1;
+  --border:   #e2e2e6;
+  --border2:  #c8c8cc;
+  --text:     #111111;
+  --text2:    #555;
+  --text3:    #aaa;
+  --input-bg: #fafafa;
+  --sb-bg:    #ffffff;
+  --preview-bg: #e8e8ea;
+  --slider-track: #d0d0d4;
+  --shadow:   rgba(0,0,0,0.12);
+  --theme-icon: "☀️";
+}
+
+/* 타이포그래피 관련 변수 (테마 무관) */
+:root {
+  --device-bg: #ffffff;
+  --font-size: 16pt;
+  --line-height: 26pt;
+  --letter-spacing: 0px;
+  --max-width: 150mm;
+  --text-align: left;
+  --text-color: #111111;
+  --paper-width: 210mm;
+  --paper-height: 297mm;
+  --pad-t: 40px; --pad-b: 40px; --pad-l: 40px; --pad-r: 40px;
+  --content-width: calc(var(--paper-width) - var(--pad-l) - var(--pad-r));
+  --content-height: calc(var(--paper-height) - var(--pad-t) - var(--pad-b));
+  --column-gap: 40px;
+  --sidebar-w: 280px;
+  --green: #16a34a;
+  --blue:  #2563eb;
+  --amber: #b45309;
+  --red:   #dc2626;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { transition: background 0.25s, color 0.25s; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  height: 100vh; overflow: hidden;
+}
+
+/* 스크롤바 */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ══════════════════════════════════════
+   화면 전환
+══════════════════════════════════════ */
+#landing, #app {
+  position: absolute; inset: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#landing { z-index: 10; }
+#app { opacity: 0; pointer-events: none; transform: translateY(10px); z-index: 5; display: flex; }
+#app.visible { opacity: 1; pointer-events: all; transform: none; }
+#landing.hidden { opacity: 0; pointer-events: none; transform: translateY(-10px); }
+
+/* ══════════════════════════════════════
+   테마 토글 버튼 (공통)
+══════════════════════════════════════ */
+.theme-toggle {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2); font-size: 0.9rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.theme-toggle:hover { border-color: var(--border2); color: var(--text); }
+
+/* ══════════════════════════════════════
+   랜딩
+══════════════════════════════════════ */
+#landing {
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--bg); overflow-y: auto;
+  padding: 60px 24px 80px; gap: 44px;
+}
+
+/* 랜딩 상단 바 */
+.landing-topbar {
+  position: absolute; top: 20px; right: 24px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.landing-hero { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.landing-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 0.7rem; font-weight: 600; color: var(--text2);
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.landing-title {
+  font-size: clamp(2rem, 5vw, 3rem); font-weight: 800;
+  letter-spacing: -0.03em; line-height: 1.1; color: var(--text);
+}
+.landing-title span { color: var(--text3); }
+.landing-desc { font-size: 0.92rem; color: var(--text2); line-height: 1.7; max-width: 460px; }
+
+/* 카드 */
+.feature-cards { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; max-width: 680px; }
+.feature-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px 20px;
+  flex: 1; min-width: 175px; max-width: 205px;
+  display: flex; flex-direction: column; gap: 8px;
+  cursor: pointer; transition: all 0.2s;
+}
+.feature-card:hover { border-color: var(--border2); background: var(--surface2); transform: translateY(-2px); box-shadow: 0 8px 24px var(--shadow); }
+.feature-card-icon { font-size: 1.5rem; }
+.feature-card-title { font-size: 0.86rem; font-weight: 700; color: var(--text); }
+.feature-card-desc { font-size: 0.73rem; color: var(--text2); line-height: 1.5; }
+
+/* CTA */
+.landing-cta { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.btn-cta-primary {
+  padding: 13px 30px; font-size: 0.88rem; font-weight: 700;
+  background: var(--text); color: var(--bg); border: none; border-radius: 10px;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-cta-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+.btn-cta-secondary {
+  padding: 13px 22px; font-size: 0.88rem; font-weight: 600;
+  background: transparent; color: var(--text2); border: 1px solid var(--border2);
+  border-radius: 10px; cursor: pointer; transition: all 0.2s;
+}
+.btn-cta-secondary:hover { color: var(--text); border-color: var(--text3); }
+
+/* 히스토리 */
+.history-section { width: 100%; max-width: 660px; }
+.history-title { font-size: 0.72rem; font-weight: 700; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; padding-left: 2px; }
+.history-empty { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; text-align: center; font-size: 0.8rem; color: var(--text3); line-height: 1.6; }
+.history-list { display: flex; flex-direction: column; gap: 5px; }
+.history-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; display: flex; align-items: center; gap: 11px; cursor: pointer; transition: all 0.15s; }
+.history-item:hover { border-color: var(--border2); background: var(--surface2); }
+.history-item-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+.history-item-info { flex: 1; min-width: 0; }
+.history-item-name { font-size: 0.8rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-item-meta { font-size: 0.68rem; color: var(--text3); margin-top: 2px; }
+.history-item-del { width: 24px; height: 24px; border-radius: 5px; background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 0.78rem; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+.history-item-del:hover { background: #fee2e2; color: var(--red); }
+[data-theme="dark"] .history-item-del:hover { background: #3a1010; }
+
+/* ══════════════════════════════════════
+   앱 레이아웃
+══════════════════════════════════════ */
+#app { flex-direction: row; }
+
+/* ── 사이드바 ── */
+#sidebar {
+  width: var(--sidebar-w); min-width: var(--sidebar-w);
+  background: var(--sb-bg); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+/* 상단 헤더 */
+.sb-top {
+  padding: 11px 12px 10px; border-bottom: 1px solid var(--border);
+  flex-shrink: 0; display: flex; align-items: center; gap: 7px;
+}
+.sb-back-btn {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text2); font-size: 0.82rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.sb-back-btn:hover { color: var(--text); border-color: var(--border2); }
+.sb-session-name { flex: 1; font-size: 0.76rem; font-weight: 600; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-save-btn { padding: 5px 10px; font-size: 0.67rem; font-weight: 700; background: #16a34a; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+.sb-save-btn:hover { filter: brightness(0.85); }
+
+/* 모드 탭 */
+.sb-modes { padding: 9px 11px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.mode-tabs { display: flex; background: var(--surface2); border-radius: 7px; padding: 3px; gap: 2px; }
+.mode-tab { flex: 1; padding: 6px 3px; font-size: 0.68rem; font-weight: 600; border: none; border-radius: 5px; background: transparent; color: var(--text3); cursor: pointer; transition: all 0.15s; text-align: center; }
+.mode-tab:hover { color: var(--text2); }
+.mode-tab.active { background: var(--text); color: var(--bg); }
+
+/* ★ 텍스트 입력 영역 — 가장 크게
+   sb-scroll을 flex 컨테이너로 만들고 텍스트 섹션이 남은 공간을 다 차지하게 */
+.sb-scroll {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 9px 9px 5px;
+  display: flex; flex-direction: column; gap: 4px;
+  /* 최소 높이 필요 — 자식이 flex-grow해도 스크롤 가능하도록 */
+  min-height: 0;
+}
+
+/* 텍스트 입력 섹션만 flex-grow: 1 */
+.section-text {
+  display: flex; flex-direction: column;
+  flex-shrink: 0; flex-grow: 1; min-height: 160px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 9px; overflow: hidden;
+}
+.section-text .sec-body {
+  flex: 1; display: flex; flex-direction: column; gap: 7px;
+  padding: 9px 10px; min-height: 0;
+}
+/* textarea가 남은 공간 전부 차지 */
+.section-text textarea {
+  flex: 1; min-height: 80px; resize: none;
+}
+
+/* 나머지 섹션은 flex-shrink 허용 */
+.section {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 9px; overflow: hidden; flex-shrink: 0;
+}
+
+.sec-hd {
+  padding: 7px 10px; font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--text3);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none; transition: color 0.15s;
+}
+.sec-hd:hover { color: var(--text2); }
+.sec-arrow { font-size: 0.52rem; transition: transform 0.18s; }
+.section.closed .sec-arrow { transform: rotate(-90deg); }
+.sec-body { padding: 9px 10px; display: flex; flex-direction: column; gap: 6px; }
+.section.closed .sec-body { display: none; }
+
+/* 컨트롤 행 */
+.ctrl-row { display: flex; align-items: center; gap: 5px; }
+.ctrl-label { font-size: 0.67rem; color: var(--text2); width: 44px; flex-shrink: 0; }
+
+/* 슬라이더 */
+input[type="range"] {
+  flex: 1; height: 3px; cursor: pointer;
+  background: var(--slider-track); border-radius: 2px; outline: none;
+  accent-color: var(--text);
+}
+
+/* 숫자 입력 */
+.nw { display: flex; align-items: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; width: 56px; flex-shrink: 0; }
+.nw input { width: 32px; padding: 4px 2px 4px 5px; background: transparent; color: var(--text); border: none; font-family: 'SF Mono', monospace; font-size: 0.74rem; outline: none; -moz-appearance: textfield; text-align: right; }
+.nw input::-webkit-outer-spin-button, .nw input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.nw-u { font-size: 0.6rem; color: var(--text3); padding-right: 3px; flex-shrink: 0; }
+
+/* 색상 */
+.color-row { display: flex; gap: 5px; }
+.color-item { flex: 1; display: flex; align-items: center; gap: 5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 6px 8px; }
+.color-item label { font-size: 0.68rem; color: var(--text2); flex: 1; }
+input[type="color"] { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 4px; border: none; cursor: pointer; padding: 0; }
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type="color"]::-webkit-color-swatch { border-radius: 3px; border: 1px solid var(--border2); }
+
+/* 여백 그리드 */
+.pad-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.pad-cell { display: flex; align-items: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 5px; gap: 3px; min-width: 0; overflow: hidden; }
+.pad-lbl { font-size: 0.63rem; color: var(--text3); width: 14px; flex-shrink: 0; }
+.pad-cell input[type="number"] { flex: 1; min-width: 0; width: 0; background: transparent; color: var(--text); border: none; font-family: 'SF Mono', monospace; font-size: 0.74rem; outline: none; -moz-appearance: textfield; text-align: right; }
+.pad-cell input[type="number"]::-webkit-outer-spin-button, .pad-cell input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+.pad-u { font-size: 0.6rem; color: var(--text3); flex-shrink: 0; }
+
+/* 정렬 */
+.align-row { display: flex; gap: 3px; }
+.align-btn { flex: 1; padding: 5px 2px; font-size: 0.76rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface2); color: var(--text3); cursor: pointer; transition: all 0.15s; }
+.align-btn:hover { color: var(--text2); border-color: var(--border2); }
+.align-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+/* 프리셋 */
+.preset-row { display: flex; gap: 3px; }
+.preset-btn { flex: 1; padding: 6px 2px; font-size: 0.68rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface2); color: var(--text2); cursor: pointer; transition: all 0.15s; text-align: center; }
+.preset-btn:hover { border-color: var(--border2); color: var(--text); }
+
+textarea {
+  width: 100%; background: var(--input-bg); border: 1px solid var(--border);
+  border-radius: 7px; color: var(--text); font-size: 0.76rem;
+  line-height: 1.55; padding: 8px 10px; outline: none; font-family: inherit;
+}
+textarea:focus { border-color: var(--border2); }
+
+select {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text); font-size: 0.74rem;
+  padding: 6px 7px; outline: none; cursor: pointer;
+}
+
+.divider { height: 1px; background: var(--border); margin: 1px 0; }
+.sec-sublabel { font-size: 0.64rem; color: var(--text3); margin-top: 1px; }
+.disabled { opacity: 0.28; pointer-events: none; }
+
+/* 하단 액션 */
+.sb-actions { padding: 9px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+.act-row { display: flex; gap: 4px; }
+.act-btn { flex: 1; padding: 8px 5px; font-size: 0.7rem; font-weight: 600; border: none; border-radius: 7px; cursor: pointer; transition: filter 0.15s; text-align: center; }
+.act-btn:hover { filter: brightness(0.82); }
+.act-green { background: #16a34a; color: #fff; }
+.act-blue  { background: #2563eb; color: #fff; }
+.act-amber { background: #b45309; color: #fff; }
+.act-ghost { background: transparent; border: 1px solid var(--border); color: var(--text3); font-size: 0.68rem; }
+.act-ghost:hover { border-color: var(--border2); color: var(--text2); filter: none; background: transparent; }
+
+/* ══════════════════════════════════════
+   미리보기
+══════════════════════════════════════ */
+#preview-area { flex: 1; overflow: auto; background: var(--preview-bg); display: flex; flex-direction: column; align-items: center; padding: 40px; }
+.text-renderer { font-size: var(--font-size); line-height: var(--line-height); letter-spacing: var(--letter-spacing); text-align: var(--text-align); color: var(--text-color); white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; outline: none; }
+#device-frame { position: relative; background: var(--device-bg); transition: all 0.3s; }
+
+.desktop-mode #device-frame { width: 100%; min-height: 100%; background: transparent; padding: var(--pad-t) var(--pad-r) var(--pad-b) var(--pad-l); }
+.desktop-mode #preview-text { max-width: var(--max-width); margin: 0 auto; }
+
+.iphone-mode #preview-area { justify-content: flex-start; }
+.iphone-mode #device-frame { width: 393px; min-height: 852px; border: 14px solid #000; border-radius: 50px; box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 0 0 2px #333; overflow: hidden; padding-top: calc(70px + var(--pad-t)); padding-right: calc(24px + var(--pad-r)); padding-bottom: calc(40px + var(--pad-b)); padding-left: calc(24px + var(--pad-l)); }
+.iphone-mode #preview-text { max-width: 100%; }
+.dynamic-island { display: none; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 120px; height: 35px; background: #000; border-radius: 20px; z-index: 100; }
+.iphone-mode .dynamic-island { display: block; }
+
+#print-pages { display: none; flex-direction: column; gap: 40px; align-items: center; width: 100%; padding-bottom: 50px; }
+.print-mode #device-frame { display: none; }
+.print-mode #print-pages { display: flex; }
+.facing-row { display: flex; justify-content: center; box-shadow: 0 20px 50px var(--shadow); }
+.facing-row .print-page { box-shadow: none; }
+.facing-row .print-page:first-child { border-right: 1px solid #ddd; }
+.print-page { width: var(--paper-width); height: var(--paper-height); background: var(--device-bg); box-shadow: 0 10px 30px var(--shadow); flex-shrink: 0; overflow: hidden; position: relative; }
+.bw-filter .print-page { filter: grayscale(100%); }
+.page-vp { position: absolute; top: var(--pad-t); left: var(--pad-l); width: var(--content-width); height: var(--content-height); overflow: hidden; }
+.shared-flow { position: absolute; height: var(--content-height); width: 9999px; column-width: var(--content-width); column-gap: var(--column-gap); column-fill: auto; }
+
+.compare-on .text-renderer { font-family: sans-serif !important; font-size: 16px !important; line-height: 1.5 !important; letter-spacing: 0 !important; color: #000 !important; text-align: left !important; }
+.compare-on #device-frame, .compare-on .print-page { background-color: #fff !important; filter: none !important; }
+
+#hidden-measure { position: fixed; top: -9999px; left: -9999px; visibility: hidden; pointer-events: none; width: var(--content-width); height: var(--content-height); overflow: hidden; }
+</style>
+</head>
+<body>
+
+<div id="hidden-measure">
+  <div id="source-text" class="text-renderer shared-flow" style="position:relative;"></div>
+</div>
+
+<!-- ══════════ 랜딩 ══════════ -->
+<div id="landing">
+  <!-- 우상단: 테마 토글 -->
+  <div class="landing-topbar">
+    <button class="theme-toggle" id="themeToggleLanding" onclick="toggleTheme()" title="테마 전환">🌙</button>
+  </div>
+
+  <div class="landing-hero">
+    <div class="landing-badge">✦ Typography Tool</div>
+    <h1 class="landing-title">타이포 랩<br><span>가독성 테스트 도구</span></h1>
+    <p class="landing-desc">글꼴 크기, 줄 간격, 자간을 실시간으로 조정하며<br>PC · 모바일 · 인쇄 환경의 가독성을 미리 확인하세요.</p>
+  </div>
+
+  <div class="feature-cards">
+    <div class="feature-card" onclick="newSession('desktop')">
+      <div class="feature-card-icon">🖥</div>
+      <div class="feature-card-title">PC / 웹</div>
+      <div class="feature-card-desc">블로그, 웹사이트 등 화면 기반 타이포그래피 테스트</div>
+    </div>
+    <div class="feature-card" onclick="newSession('iphone')">
+      <div class="feature-card-icon">📱</div>
+      <div class="feature-card-title">모바일</div>
+      <div class="feature-card-desc">iPhone 프레임으로 모바일 환경 가독성 확인</div>
+    </div>
+    <div class="feature-card" onclick="newSession('print')">
+      <div class="feature-card-icon">📖</div>
+      <div class="feature-card-title">인쇄 / 출판</div>
+      <div class="feature-card-desc">A4~B6 종이 규격, 마주보기 레이아웃 지원</div>
+    </div>
+  </div>
+
+  <div class="landing-cta">
+    <button class="btn-cta-primary" onclick="newSession('desktop')">새 세션 시작하기 →</button>
+    <button class="btn-cta-secondary" onclick="scrollToHistory()">이전 기록 보기</button>
+  </div>
+
+  <div class="history-section" id="history-section">
+    <div class="history-title">저장된 세션</div>
+    <div id="history-list-wrap"></div>
+  </div>
+</div>
+
+<!-- ══════════ 앱 ══════════ -->
+<div id="app">
+  <!-- 사이드바 -->
+  <div id="sidebar">
+
+    <!-- 상단: 뒤로 / 세션명 / 테마토글 / 저장 -->
+    <div class="sb-top">
+      <button class="sb-back-btn" onclick="goLanding()" title="홈으로">←</button>
+      <span class="sb-session-name" id="session-name-label">새 세션</span>
+      <button class="theme-toggle" id="themeToggleApp" onclick="toggleTheme()" title="테마 전환">🌙</button>
+      <button class="sb-save-btn" onclick="saveSession()">저장</button>
+    </div>
+
+    <!-- 모드 탭 -->
+    <div class="sb-modes">
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="modeDesktopBtn">🖥 PC</button>
+        <button class="mode-tab" id="modeIphoneBtn">📱 모바일</button>
+        <button class="mode-tab" id="modePrintBtn">🖨 인쇄</button>
+      </div>
+    </div>
+
+    <!-- 스크롤 영역 -->
+    <div class="sb-scroll">
+
+      <!-- ★ 텍스트 입력 — 가장 크게 (section-text 클래스로 flex-grow: 1) -->
+      <div class="section-text">
+        <div class="sec-hd" onclick="toggleSec(this)"><span>텍스트 입력</span><span class="sec-arrow">▾</span></div>
+        <div class="sec-body">
+          <textarea id="textInput" placeholder="테스트할 글을 입력하세요...">가독성 테스트 랩에 오신 것을 환영합니다. 이 도구는 타이포그래피 설정을 실시간으로 미리볼 수 있게 해줍니다.
+
+글꼴 크기, 줄 간격, 자간 등을 조절하면서 최적의 가독성을 찾아보세요. 인쇄 모드에서는 실제 종이에 인쇄했을 때의 모습을 미리 확인할 수 있습니다.
+
+마주보기 레이아웃을 사용하면 책처럼 왼쪽 페이지의 마지막 글자가 오른쪽 페이지의 첫 글자로 끊김 없이 이어집니다.
+
+충분한 양의 텍스트가 있어야 페이지 넘김을 확인할 수 있습니다. 폰트 크기를 키우거나 줄여보면 페이지 수가 자동으로 조정됩니다.
+
+소설이나 긴 문서를 작성할 때 이 도구가 유용하게 쓰이길 바랍니다. 마주보기 레이아웃은 특히 출판물 디자인에 많이 사용됩니다.</textarea>
+          <div class="preset-row">
+            <button class="preset-btn" onclick="applyPreset('blog')">📝 블로그</button>
+            <button class="preset-btn" onclick="applyPreset('mobile')">📱 모바일</button>
+            <button class="preset-btn" onclick="applyPreset('novel')">📖 소설</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 타이포그래피 -->
+      <div class="section">
+        <div class="sec-hd" onclick="toggleSec(this)"><span>타이포그래피</span><span class="sec-arrow">▾</span></div>
+        <div class="sec-body">
+          <div class="ctrl-row">
+            <span class="ctrl-label">글자 크기</span>
+            <input type="range" id="fontSizeSlider" min="8" max="72" step="1" value="16">
+            <div class="nw"><input type="number" id="fontSizeNum" value="16"><span class="nw-u">pt</span></div>
+          </div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">줄 간격</span>
+            <input type="range" id="lineHeightSlider" min="10" max="120" step="1" value="26">
+            <div class="nw"><input type="number" id="lineHeightNum" value="26"><span class="nw-u">pt</span></div>
+          </div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">자간</span>
+            <input type="range" id="letterSpacingSlider" min="-5" max="20" step="0.5" value="0">
+            <div class="nw"><input type="number" id="letterSpacingNum" step="0.5" value="0"><span class="nw-u">px</span></div>
+          </div>
+          <div class="divider"></div>
+          <div class="align-row" id="alignGroup">
+            <button class="align-btn active" data-align="left"    title="좌측">≡ 좌</button>
+            <button class="align-btn"        data-align="center"  title="중앙">≡ 중</button>
+            <button class="align-btn"        data-align="right"   title="우측">≡ 우</button>
+            <button class="align-btn"        data-align="justify" title="양끝">≡ 양</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 레이아웃 -->
+      <div class="section">
+        <div class="sec-hd" onclick="toggleSec(this)"><span>레이아웃</span><span class="sec-arrow">▾</span></div>
+        <div class="sec-body">
+          <div class="ctrl-row" id="widthCtrl">
+            <span class="ctrl-label">단락 너비</span>
+            <input type="range" id="lineWidthSlider" min="50" max="500" step="5" value="150">
+            <div class="nw"><input type="number" id="lineWidthNum" value="150"><span class="nw-u">mm</span></div>
+          </div>
+          <div class="sec-sublabel">여백 (px)</div>
+          <div class="pad-grid">
+            <div class="pad-cell"><span class="pad-lbl">상</span><input type="number" id="padT" value="40"><span class="pad-u">px</span></div>
+            <div class="pad-cell"><span class="pad-lbl">하</span><input type="number" id="padB" value="40"><span class="pad-u">px</span></div>
+            <div class="pad-cell"><span class="pad-lbl">좌</span><input type="number" id="padL" value="40"><span class="pad-u">px</span></div>
+            <div class="pad-cell"><span class="pad-lbl">우</span><input type="number" id="padR" value="40"><span class="pad-u">px</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 색상 -->
+      <div class="section">
+        <div class="sec-hd" onclick="toggleSec(this)"><span>색상</span><span class="sec-arrow">▾</span></div>
+        <div class="sec-body">
+          <div class="color-row">
+            <div class="color-item"><label>글자색</label><input type="color" id="textColor" value="#111111"></div>
+            <div class="color-item"><label>배경색</label><input type="color" id="bgColor"   value="#ffffff"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 인쇄 설정 -->
+      <div class="section" id="printSec" style="display:none;">
+        <div class="sec-hd" onclick="toggleSec(this)"><span>인쇄 설정</span><span class="sec-arrow">▾</span></div>
+        <div class="sec-body">
+          <select id="paperSizeSelect">
+            <option value="594,841">A1 (594×841 mm)</option>
+            <option value="420,594">A2 (420×594 mm)</option>
+            <option value="297,420">A3 (297×420 mm)</option>
+            <option value="210,297" selected>A4 (210×297 mm)</option>
+            <option value="148,210">A5 (148×210 mm)</option>
+            <option value="105,148">A6 (105×148 mm)</option>
+            <option value="728,1030">B1 (728×1030 mm)</option>
+            <option value="515,728">B2 (515×728 mm)</option>
+            <option value="364,515">B3 (364×515 mm)</option>
+            <option value="257,364">B4 (257×364 mm)</option>
+            <option value="182,257">B5 (182×257 mm)</option>
+            <option value="128,182">B6 (128×182 mm)</option>
+            <option value="custom">직접 입력</option>
+          </select>
+          <div id="customSizeInputs" style="display:none;" class="pad-grid">
+            <div class="pad-cell"><span class="pad-lbl">가로</span><input type="number" id="customWidth"  value="210"><span class="pad-u">mm</span></div>
+            <div class="pad-cell"><span class="pad-lbl">세로</span><input type="number" id="customHeight" value="297"><span class="pad-u">mm</span></div>
+          </div>
+          <div style="display:flex;gap:5px;">
+            <select id="printLayoutSelect" style="flex:1;">
+              <option value="single">📄 1쪽씩</option>
+              <option value="facing">📖 마주보기</option>
+            </select>
+            <select id="printColorSelect" style="flex:1;">
+              <option value="color">컬러</option>
+              <option value="bw">흑백</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sb-scroll -->
+
+    <!-- 하단 액션 -->
+    <div class="sb-actions">
+      <div class="act-row">
+        <button class="act-btn act-green" id="saveImgBtn">📸 이미지</button>
+        <button class="act-btn act-green" id="savePdfBtn">📄 PDF</button>
+      </div>
+      <div class="act-row">
+        <button class="act-btn act-blue"  id="copyCssBtn">📋 CSS 복사</button>
+        <button class="act-btn act-amber" id="compareBtn">👁 전/후 비교</button>
+      </div>
+      <button class="act-btn act-ghost" onclick="resetAll()">🔄 초기화</button>
+    </div>
+  </div><!-- /sidebar -->
+
+  <!-- 미리보기 -->
+  <div id="preview-area">
+    <div id="device-frame">
+      <div class="dynamic-island"></div>
+      <div id="preview-text" class="text-renderer" contenteditable="true" spellcheck="false"></div>
+    </div>
+    <div id="print-pages"></div>
+  </div>
+</div><!-- /app -->
+
+<script>
+const $ = id => document.getElementById(id);
+const cv = (n, v) => document.documentElement.style.setProperty(n, v);
+let currentSession = { id: null, name: '새 세션', mode: 'desktop' };
+
+/* ─── 테마 ─── */
+function getTheme() { return document.documentElement.dataset.theme || 'dark'; }
+function toggleTheme() {
+  const next = getTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  const icon = next === 'dark' ? '🌙' : '☀️';
+  $('themeToggleLanding').textContent = icon;
+  $('themeToggleApp').textContent = icon;
+  localStorage.setItem('typo_theme', next);
+  // 미리보기 배경 재적용
+  updateColors();
+}
+// 저장된 테마 불러오기
+(function() {
+  const saved = localStorage.getItem('typo_theme');
+  if (saved) {
+    document.documentElement.dataset.theme = saved;
+    const icon = saved === 'dark' ? '🌙' : '☀️';
+    // DOM 로드 후 아이콘 설정은 DOMContentLoaded에서
+  }
+})();
+
+/* ─── 화면 전환 ─── */
+function goApp() {
+  $('landing').classList.add('hidden');
+  $('app').classList.add('visible');
+}
+function goLanding() {
+  $('app').classList.remove('visible');
+  $('landing').classList.remove('hidden');
+  renderHistory();
+}
+function scrollToHistory() {
+  $('history-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+/* ─── 세션 저장 ─── */
+function sessionKey(id) { return 'typo_session_' + id; }
+function getAllSessions() {
+  return Object.keys(localStorage).filter(k => k.startsWith('typo_session_'))
+    .map(k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } })
+    .filter(Boolean).sort((a, b) => b.savedAt - a.savedAt);
+}
+function captureState() {
+  return {
+    text: $('textInput').value,
+    fontSize: $('fontSizeNum').value, lineHeight: $('lineHeightNum').value,
+    letterSpacing: $('letterSpacingNum').value, lineWidth: $('lineWidthNum').value,
+    padT: $('padT').value, padB: $('padB').value, padL: $('padL').value, padR: $('padR').value,
+    textColor: $('textColor').value, bgColor: $('bgColor').value,
+    align: document.querySelector('.align-btn.active')?.dataset.align || 'left',
+    mode: currentSession.mode,
+    paperSize: $('paperSizeSelect').value, printLayout: $('printLayoutSelect').value, printColor: $('printColorSelect').value,
+  };
+}
+function applyState(s) {
+  if (!s) return;
+  $('textInput').value = s.text || '';
+  const ss = (sid, nid, v) => { $(sid).value = v; $(nid).value = v; $(sid).dispatchEvent(new Event('input')); };
+  ss('fontSizeSlider','fontSizeNum', s.fontSize||16);
+  ss('lineHeightSlider','lineHeightNum', s.lineHeight||26);
+  ss('letterSpacingSlider','letterSpacingNum', s.letterSpacing||0);
+  ss('lineWidthSlider','lineWidthNum', s.lineWidth||150);
+  $('padT').value=s.padT||40; $('padB').value=s.padB||40;
+  $('padL').value=s.padL||40; $('padR').value=s.padR||40;
+  $('textColor').value=s.textColor||'#111111'; $('bgColor').value=s.bgColor||'#ffffff';
+  document.querySelectorAll('.align-btn').forEach(b => b.classList.toggle('active', b.dataset.align===(s.align||'left')));
+  cv('--text-align', s.align||'left');
+  if (s.paperSize)   $('paperSizeSelect').value   = s.paperSize;
+  if (s.printLayout) $('printLayoutSelect').value = s.printLayout;
+  if (s.printColor)  $('printColorSelect').value  = s.printColor;
+  updatePadding(); updateColors(); setMode(s.mode||'desktop');
+}
+function saveSession() {
+  const state = captureState();
+  const now = Date.now();
+  if (!currentSession.id) currentSession.id = 'sess_' + now;
+  currentSession.name = state.text.trim().slice(0,18).replace(/\n/g,' ') || '(빈 세션)';
+  $('session-name-label').textContent = currentSession.name;
+  localStorage.setItem(sessionKey(currentSession.id), JSON.stringify({ ...state, id: currentSession.id, name: currentSession.name, savedAt: now }));
+  flashBtn($('sidebar').querySelector('.sb-save-btn'), '✓ 저장됨');
+}
+function loadSession(id) {
+  const data = JSON.parse(localStorage.getItem(sessionKey(id)) || 'null');
+  if (!data) return;
+  currentSession = { id: data.id, name: data.name, mode: data.mode||'desktop' };
+  $('session-name-label').textContent = currentSession.name;
+  applyState(data); goApp();
+}
+function deleteSession(id, e) {
+  e.stopPropagation();
+  localStorage.removeItem(sessionKey(id));
+  renderHistory();
+}
+function newSession(mode) {
+  currentSession = { id: null, name: '새 세션', mode };
+  $('session-name-label').textContent = '새 세션';
+  resetAll(); setMode(mode); goApp();
+}
+function renderHistory() {
+  const sessions = getAllSessions();
+  const wrap = $('history-list-wrap');
+  if (!sessions.length) {
+    wrap.innerHTML = '<div class="history-empty">아직 저장된 세션이 없어요.<br>새 세션을 시작하고 저장 버튼을 눌러보세요.</div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="history-list">' + sessions.map(s => {
+    const d = new Date(s.savedAt);
+    const dt = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const ml = {desktop:'PC',iphone:'모바일',print:'인쇄'}[s.mode]||s.mode;
+    return `<div class="history-item" onclick="loadSession('${s.id}')">
+      <div class="history-item-dot"></div>
+      <div class="history-item-info">
+        <div class="history-item-name">${s.name}</div>
+        <div class="history-item-meta">${ml} · ${dt}</div>
+      </div>
+      <button class="history-item-del" onclick="deleteSession('${s.id}',event)">✕</button>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+/* ─── 섹션 토글 ─── */
+function toggleSec(hd) { hd.closest('.section, .section-text').classList.toggle('closed'); }
+
+/* ─── 페이지네이션 ─── */
+function updateView() {
+  const raw = $('textInput').value;
+  $('preview-text').innerText = raw;
+  if (!document.body.classList.contains('print-mode')) return;
+  $('source-text').innerText = raw;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const sw = $('source-text').scrollWidth;
+    const cw = $('hidden-measure').clientWidth;
+    const gap = 40;
+    if (cw <= 0) return;
+    let pages = Math.ceil((sw + gap) / (cw + gap));
+    if (pages < 1 || !isFinite(pages)) pages = 1;
+    buildPages(pages, cw, gap);
+  }));
+}
+function buildPages(total, cw, gap) {
+  const con = $('print-pages'); con.innerHTML = '';
+  const layout = $('printLayoutSelect').value;
+  let row = null;
+  for (let i = 0; i < total; i++) {
+    if (layout==='facing' && i%2===0) { row=document.createElement('div'); row.className='facing-row'; con.appendChild(row); }
+    const page=document.createElement('div'); page.className='print-page';
+    const vp=document.createElement('div'); vp.className='page-vp';
+    const clone=$('source-text').cloneNode(true); clone.id='';
+    clone.style.transform=`translateX(-${i*(cw+gap)}px)`;
+    vp.appendChild(clone); page.appendChild(vp);
+    if (layout==='facing') {
+      row.appendChild(page);
+      if (i===total-1 && i%2===0) { const emp=document.createElement('div'); emp.className='print-page'; row.appendChild(emp); }
+    } else con.appendChild(page);
+  }
+}
+
+/* ─── 컨트롤 ─── */
+$('textInput').addEventListener('input', updateView);
+$('preview-text').addEventListener('input', () => { $('textInput').value = $('preview-text').innerText; updateView(); });
+
+document.querySelectorAll('.align-btn').forEach(btn => btn.addEventListener('click', e => {
+  document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active'); cv('--text-align', e.target.dataset.align); updateView();
+}));
+
+const updatePadding = () => {
+  cv('--pad-t',$('padT').value+'px'); cv('--pad-b',$('padB').value+'px');
+  cv('--pad-l',$('padL').value+'px'); cv('--pad-r',$('padR').value+'px');
+  updateView();
+};
+['padT','padB','padL','padR'].forEach(id => $(id).addEventListener('input', updatePadding));
+
+const updateColors = () => {
+  cv('--text-color', $('textColor').value);
+  cv('--device-bg',  $('bgColor').value);
+  $('preview-area').style.backgroundColor =
+    document.body.classList.contains('desktop-mode') ? $('bgColor').value : '';
+};
+$('textColor').addEventListener('input', updateColors);
+$('bgColor').addEventListener('input', updateColors);
+
+function setMode(mode) {
+  document.body.classList.remove('desktop-mode','iphone-mode','print-mode');
+  document.body.classList.add(mode+'-mode');
+  currentSession.mode = mode;
+  ['modeDesktopBtn','modeIphoneBtn','modePrintBtn'].forEach(id => $(id).classList.remove('active'));
+  $('printSec').style.display = 'none';
+  $('widthCtrl').classList.remove('disabled');
+  if (mode==='desktop') $('modeDesktopBtn').classList.add('active');
+  else if (mode==='iphone') { $('modeIphoneBtn').classList.add('active'); $('widthCtrl').classList.add('disabled'); }
+  else if (mode==='print')  { $('modePrintBtn').classList.add('active'); $('printSec').style.display='block'; $('widthCtrl').classList.add('disabled'); applyPrintSettings(); }
+  updateColors(); updateView();
+}
+$('modeDesktopBtn').addEventListener('click', () => setMode('desktop'));
+$('modeIphoneBtn').addEventListener('click',  () => setMode('iphone'));
+$('modePrintBtn').addEventListener('click',   () => setMode('print'));
+
+function applyPrintSettings() {
+  if (!document.body.classList.contains('print-mode')) return;
+  let w, h;
+  if ($('paperSizeSelect').value==='custom') { $('customSizeInputs').style.display='grid'; w=$('customWidth').value; h=$('customHeight').value; }
+  else { $('customSizeInputs').style.display='none'; [w,h]=$('paperSizeSelect').value.split(','); }
+  cv('--paper-width',w+'mm'); cv('--paper-height',h+'mm');
+  document.body.classList.toggle('bw-filter', $('printColorSelect').value==='bw');
+  updateView();
+}
+$('paperSizeSelect').addEventListener('change', applyPrintSettings);
+$('customWidth').addEventListener('input', applyPrintSettings);
+$('customHeight').addEventListener('input', applyPrintSettings);
+$('printLayoutSelect').addEventListener('change', updateView);
+$('printColorSelect').addEventListener('change', applyPrintSettings);
+
+function setupSync(sid, nid, cssVar, unit) {
+  const s=$(sid), n=$(nid);
+  const apply = v => { cv(cssVar, v+unit); updateView(); };
+  s.addEventListener('input', e => { n.value=e.target.value; apply(e.target.value); });
+  n.addEventListener('input', e => { if(e.target.value!==''){s.value=e.target.value; apply(e.target.value);} });
+  apply(n.value);
+}
+setupSync('fontSizeSlider','fontSizeNum','--font-size','pt');
+setupSync('lineHeightSlider','lineHeightNum','--line-height','pt');
+setupSync('letterSpacingSlider','letterSpacingNum','--letter-spacing','px');
+setupSync('lineWidthSlider','lineWidthNum','--max-width','mm');
+
+function resetAll() {
+  [['fontSizeSlider','fontSizeNum',16],['lineHeightSlider','lineHeightNum',26],
+   ['letterSpacingSlider','letterSpacingNum',0],['lineWidthSlider','lineWidthNum',150]]
+  .forEach(([s,n,v])=>{$(s).value=v;$(n).value=v;$(s).dispatchEvent(new Event('input'));});
+  $('padT').value=$('padB').value=$('padL').value=$('padR').value=40;
+  $('textColor').value='#111111';$('bgColor').value='#ffffff';
+  document.querySelector('[data-align="left"]').click();
+  $('paperSizeSelect').value='210,297';$('customSizeInputs').style.display='none';
+  $('printLayoutSelect').value='single';$('printColorSelect').value='color';
+  updatePadding();updateColors();
+}
+function applyPreset(type) {
+  const go=(fs,lh,ls,lw,pt,pr,pb,pl,tc,bc,align,mode,layout='single')=>{
+    [['fontSizeSlider','fontSizeNum',fs],['lineHeightSlider','lineHeightNum',lh],
+     ['letterSpacingSlider','letterSpacingNum',ls],['lineWidthSlider','lineWidthNum',lw]]
+    .forEach(([s,n,v])=>{$(s).value=v;$(n).value=v;$(s).dispatchEvent(new Event('input'));});
+    $('padT').value=pt;$('padR').value=pr;$('padB').value=pb;$('padL').value=pl;
+    $('textColor').value=tc;$('bgColor').value=bc;$('printLayoutSelect').value=layout;
+    document.querySelector(`[data-align="${align}"]`).click();
+    updatePadding();setMode(mode);
+  };
+  if(type==='blog')   go(16,28,-0.5,180,60,40,60,40,'#222','#fff','left','desktop');
+  if(type==='mobile') go(15,25,-0.5,150,20,20,20,20,'#111','#f9f9f9','left','iphone');
+  if(type==='novel')  go(12,24,-0.2,120,50,40,50,40,'#333','#faf9f6','justify','print','facing');
+}
+
+/* ─── 저장 버튼 ─── */
+function flashBtn(btn, msg, ms=2000) {
+  const o=btn.innerText; btn.innerText=msg; setTimeout(()=>btn.innerText=o, ms);
+}
+$('saveImgBtn').addEventListener('click', async () => {
+  const btn=$('saveImgBtn'); flashBtn(btn,'⏳...');
+  try {
+    const t=document.body.classList.contains('print-mode')?document.querySelector('.print-page'):$('device-frame');
+    const c=await html2canvas(t,{scale:2,useCORS:true,backgroundColor:$('bgColor').value});
+    const a=document.createElement('a');a.download='typography.png';a.href=c.toDataURL('image/png');a.click();
+  } catch{alert('저장 실패');}
+  flashBtn(btn,'📸 이미지',1);
+});
+$('savePdfBtn').addEventListener('click', async () => {
+  if(!window.jspdf)return alert('로딩 중');
+  const btn=$('savePdfBtn'); flashBtn(btn,'⏳...');
+  try {
+    const{jsPDF}=window.jspdf;let pdf=null;
+    const targets=document.body.classList.contains('print-mode')?[...document.querySelectorAll('.print-page')]:[$('device-frame')];
+    for(const el of targets){
+      const c=await html2canvas(el,{scale:2,backgroundColor:$('bgColor').value});
+      const img=c.toDataURL('image/png'),w=c.width/2,h=c.height/2;
+      if(!pdf)pdf=new jsPDF({orientation:w>h?'l':'p',unit:'px',format:[w,h]});
+      else pdf.addPage([w,h],w>h?'l':'p');
+      pdf.addImage(img,'PNG',0,0,w,h);
+    }
+    pdf.save('typography.pdf');
+  }catch{alert('PDF 실패');}
+  flashBtn(btn,'📄 PDF',1);
+});
+$('copyCssBtn').addEventListener('click',()=>{
+  const align=document.querySelector('.align-btn.active')?.dataset.align||'left';
+  const css=`.my-typography {\n  font-size: ${$('fontSizeNum').value}pt;\n  line-height: ${$('lineHeightNum').value}pt;\n  letter-spacing: ${$('letterSpacingNum').value}px;\n  max-width: ${$('lineWidthNum').value}mm;\n  text-align: ${align};\n  color: ${$('textColor').value};\n  background-color: ${$('bgColor').value};\n  padding: ${$('padT').value}px ${$('padR').value}px ${$('padB').value}px ${$('padL').value}px;\n}`;
+  navigator.clipboard.writeText(css).then(()=>flashBtn($('copyCssBtn'),'✅ 복사됨'));
+});
+$('compareBtn').addEventListener('mousedown',()=>document.body.classList.add('compare-on'));
+['mouseup','mouseleave'].forEach(e=>$('compareBtn').addEventListener(e,()=>document.body.classList.remove('compare-on')));
+
+/* ─── 초기 실행 ─── */
+// 저장된 테마 아이콘 반영
+(function(){
+  const t = localStorage.getItem('typo_theme') || 'dark';
+  document.documentElement.dataset.theme = t;
+  const icon = t==='dark'?'🌙':'☀️';
+  document.addEventListener('DOMContentLoaded', () => {
+    $('themeToggleLanding').textContent = icon;
+    $('themeToggleApp').textContent = icon;
+  });
+})();
+
+renderHistory();
+updatePadding();
+updateColors();
+updateView();
+</script>
+</body>
+</html>
