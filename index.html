@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>동료 모집하기 - RECRUIT YOUR PARTY</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <header class="hero">
+    <div class="wrap hero-inner">
+      <div class="hud">
+        <div class="hud-item">
+          <span class="hud-label">PLAYER</span>
+          <span class="hud-value">1UP</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">STAGE</span>
+          <span class="hud-value">00</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">STATUS</span>
+          <span class="hud-value">READY</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">SCORE</span>
+          <span class="hud-value">000000</span>
+        </div>
+      </div>
+
+      <div class="hero-panel">
+        <span class="hero-en">RECRUIT YOUR PARTY</span>
+        <h1>동료 모집하기</h1>
+        <div class="line"></div>
+        <p class="hero-desc">
+          프로젝트를 시작하기 전,<br>
+          나에게 필요한 도구를 선택하고<br>
+          함께할 동료를 찾아보세요.
+        </p>
+      </div>
+
+      <section class="profile-panel">
+        <h2 class="profile-title">PLAYER PROFILE</h2>
+
+        <div class="field-list">
+          <div class="field-row">
+            <label for="name">NAME</label>
+            <input id="name" type="text" placeholder="이름을 입력하세요">
+          </div>
+
+          <div class="field-row">
+            <label for="major">MAJOR</label>
+            <input id="major" type="text" placeholder="전공을 입력하세요">
+          </div>
+
+          <div class="field-row">
+            <label for="student-id">STUDENT ID</label>
+            <input id="student-id" type="text" placeholder="학번을 입력하세요">
+          </div>
+
+
+          <div class="field-row">
+            <label for="birthday">BIRTHDAY / SIGN</label>
+            <input id="birthday" type="text" placeholder="예: 01.15 / 염소">
+          </div>
+        </div>
+      </section>
+
+      <div class="hero-buttons">
+        <a class="button button-sub" href="#items">START</a>
+      </div>
+
+      <a class="scroll-arrow" href="#items">↓</a>
+
+    </div>
+  </header>
+
+  <main>
+    <section id="items" class="section grass-section">
+      <div class="wrap">
+        <span class="section-tag section-tag-green">// ITEM SELECT</span>
+        <h2 class="section-title section-title-green">나의 도구를 선택하세요</h2>
+        <p class="section-desc section-desc-green">각 스테이지에서 더 가까운 선택지를 골라보세요.</p>
+
+        <div class="stage-list">
+          <article class="stage-card">
+            <div class="stage-head">
+              <span class="stage-num">STAGE 01</span>
+              <span class="stage-sub">START POINT</span>
+            </div>
+            <h3 class="stage-question">프로젝트가 시작되었습니다. 가장 먼저 확인하고 싶은 것은?</h3>
+
+            <div class="choice-list">
+              <div class="choice">
+                <span class="choice-ab">A</span>
+                <span class="choice-tag blue">MAP</span>
+                <p class="choice-text">전체 구조와 순서를 먼저 정리한다</p>
+                <span class="type-tag">구조 설계형</span>
+              </div>
+              <div class="choice">
+                <span class="choice-ab">B</span>
+                <span class="choice-tag pink">TORCH</span>
+                <p class="choice-text">떠오르는 이미지나 분위기부터 잡아본다</p>
+                <span class="type-tag">감각 시각화형</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="stage-card">
+            <div class="stage-head">
+              <span class="stage-num">STAGE 02</span>
+              <span class="stage-sub">TROUBLE POINT</span>
+            </div>
+            <h3 class="stage-question">작업 방향이 잠시 막혔습니다. 가장 먼저 시도하는 방식은?</h3>
+
+            <div class="choice-list">
+              <div class="choice">
+                <span class="choice-ab">A</span>
+                <span class="choice-tag green">RADAR</span>
+                <p class="choice-text">레퍼런스를 찾아보며 다양한 가능성을 탐색한다</p>
+                <span class="type-tag">실험 탐색형</span>
+              </div>
+              <div class="choice">
+                <span class="choice-ab">B</span>
+                <span class="choice-tag orange">LENS</span>
+                <p class="choice-text">지금까지 한 것을 처음부터 다시 점검한다</p>
+                <span class="type-tag">디테일 완성형</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="stage-card">
+            <div class="stage-head">
+              <span class="stage-num">STAGE 03</span>
+              <span class="stage-sub">ROLE SELECT</span>
+            </div>
+            <h3 class="stage-question">팀 작업에서 당신에게 가장 편한 역할은?</h3>
+
+            <div class="choice-list">
+              <div class="choice">
+                <span class="choice-ab">A</span>
+                <span class="choice-tag blue">MAP</span>
+                <p class="choice-text">자료와 의견을 정리하고 방향을 잡는 역할</p>
+                <span class="type-tag">구조 설계형</span>
+              </div>
+              <div class="choice">
+                <span class="choice-ab">B</span>
+                <span class="choice-tag pink">TORCH</span>
+                <p class="choice-text">비주얼 콘셉트와 그래픽 분위기를 제안하는 역할</p>
+                <span class="type-tag">감각 시각화형</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="stage-card">
+            <div class="stage-head">
+              <span class="stage-num">STAGE 04</span>
+              <span class="stage-sub">FINAL CHECK</span>
+            </div>
+            <h3 class="stage-question">결과물을 볼 때 가장 먼저 확인하는 것은?</h3>
+
+            <div class="choice-list">
+              <div class="choice">
+                <span class="choice-ab">A</span>
+                <span class="choice-tag pink">TORCH</span>
+                <p class="choice-text">색감, 이미지, 분위기처럼 첫인상을 확인한다</p>
+                <span class="type-tag">감각 시각화형</span>
+              </div>
+              <div class="choice">
+                <span class="choice-ab">B</span>
+                <span class="choice-tag orange">LENS</span>
+                <p class="choice-text">정렬, 여백, 마감 상태처럼 세부를 확인한다</p>
+                <span class="type-tag">디테일 완성형</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <p class="stage-note">
+          ★ 선택한 답변 옆의 유형명을 직접 세어본 뒤, 아래 STATUS CHECK에서 나와 가까운 작업 유형을 확인해보세요.
+        </p>
+      </div>
+    </section>
+
+    <section class="section soil-section">
+      <div class="wrap">
+        <span class="section-tag">// ITEM GUIDE</span>
+        <h2 class="section-title">모험 도구 안내</h2>
+        <p class="section-desc">퀘스트를 시작하기 전, 네 가지 작업 도구를 먼저 확인하세요.</p>
+
+        <div class="item-list">
+          <article class="item-card item-map">
+            <span class="item-num">ITEM 01</span>
+            <div class="item-icon">🗺️</div>
+            <span class="item-label blue">MAP</span>
+            <h3 class="item-name">구조 설계형</h3>
+            <p class="item-desc">전체 흐름과 역할을 먼저 정리하고, 작업의 기준을 세우는 유형입니다.</p>
+            <div class="keyword-list">
+              <span class="keyword">구조</span>
+              <span class="keyword">정리</span>
+              <span class="keyword">기준</span>
+              <span class="keyword">흐름</span>
+            </div>
+          </article>
+
+          <article class="item-card item-torch">
+            <span class="item-num">ITEM 02</span>
+            <div class="item-icon">🔦</div>
+            <span class="item-label pink">TORCH</span>
+            <h3 class="item-name">감각 시각화형</h3>
+            <p class="item-desc">분위기, 이미지, 색감처럼 시각적 인상을 구체화하는 유형입니다.</p>
+            <div class="keyword-list">
+              <span class="keyword">무드</span>
+              <span class="keyword">색감</span>
+              <span class="keyword">이미지</span>
+              <span class="keyword">감각</span>
+            </div>
+          </article>
+
+          <article class="item-card item-radar">
+            <span class="item-num">ITEM 03</span>
+            <div class="item-icon">📡</div>
+            <span class="item-label green">RADAR</span>
+            <h3 class="item-name">실험 탐색형</h3>
+            <p class="item-desc">새로운 가능성과 레퍼런스, 낯선 조합을 탐색하는 유형입니다.</p>
+            <div class="keyword-list">
+              <span class="keyword">탐색</span>
+              <span class="keyword">실험</span>
+              <span class="keyword">확장</span>
+              <span class="keyword">아이디어</span>
+            </div>
+          </article>
+
+          <article class="item-card item-lens">
+            <span class="item-num">ITEM 04</span>
+            <div class="item-icon">🔍</div>
+            <span class="item-label orange">LENS</span>
+            <h3 class="item-name">디테일 완성형</h3>
+            <p class="item-desc">정렬, 여백, 마감, 완성도를 세밀하게 확인하는 유형입니다.</p>
+            <div class="keyword-list">
+              <span class="keyword">디테일</span>
+              <span class="keyword">점검</span>
+              <span class="keyword">정렬</span>
+              <span class="keyword">마감</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section deep-soil-section">
+      <div class="wrap">
+        <span class="section-tag">// STATUS CHECK</span>
+        <h2 class="section-title">수집한 도구 확인하기</h2>
+        <p class="section-desc">
+          선택한 답변 옆의 유형명을 세어보세요.<br>
+          가장 많이 나온 유형이 현재 나와 가까운 작업 방식입니다.
+        </p>
+
+        <div class="status-table">
+          <div class="status-row">
+            <div class="status-icon">🏆</div>
+            <div class="status-body">
+              <span class="status-cond">같은 유형이 3개 이상 — 주력 도구 확정</span>
+              <span class="status-exp">해당 도구의 성향이 가장 뚜렷하게 나타나는 편입니다.</span>
+            </div>
+          </div>
+
+          <div class="status-row">
+            <div class="status-icon">⚔️</div>
+            <div class="status-body">
+              <span class="status-cond">같은 유형이 2개 — 서브 도구 보유</span>
+              <span class="status-exp">해당 도구의 성향이 어느 정도 있는 편입니다.</span>
+            </div>
+          </div>
+
+          <div class="status-row">
+            <div class="status-icon">🎭</div>
+            <div class="status-body">
+              <span class="status-cond">1등 유형이 2개 이상 동률 — 복합 도구</span>
+              <span class="status-exp">두 가지 작업 성향을 함께 가진 복합형입니다.</span>
+            </div>
+          </div>
+
+          <div class="status-row">
+            <div class="status-icon">🌀</div>
+            <div class="status-body">
+              <span class="status-cond">모든 유형이 비슷 — 자유 탐색형</span>
+              <span class="status-exp">상황에 따라 작업 방식이 달라지는 유연한 타입입니다.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="party" class="section sky-section">
+      <div class="wrap">
+        <span class="section-tag section-tag-sky">// PARTY MEMBER</span>
+        <h2 class="section-title section-title-sky">함께할 동료 선택하기</h2>
+        <p class="section-desc section-desc-sky">나의 도구 유형과 어울리는 동료를 찾아보세요.</p>
+
+        <div class="party-list">
+          <article class="party-card">
+            <div class="party-top party-map">
+              <span class="party-type">PARTY MEMBER 01 / MAP</span>
+              <span class="party-label blue">MAP — 구조 설계형</span>
+              <h3 class="party-name">박서현</h3>
+            </div>
+            <div class="party-body">
+              <div class="party-meta">
+                <div class="party-meta-row"><span class="party-meta-label">AGE</span><span class="party-meta-value">21</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">MBTI</span><span class="party-meta-value">INTJ</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">COLOR</span><span class="party-meta-value">봄웜</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">BIRTHDAY</span><span class="party-meta-value">10.11 / 천칭</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">FAVORITE</span><span class="party-meta-value">폰</span></div>
+              </div>
+              <div class="party-tags">
+                <span class="party-tag">박박이</span>
+                <span class="party-tag">필라테스</span>
+                <span class="party-tag">차콜</span>
+                <span class="party-tag">오팔</span>
+              </div>
+              <div class="party-role">
+                <span class="party-role-label">BEST ROLE</span>
+                <p class="party-role-text">기획 정리, 논리적 구조 설계, 시스템 정립</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="party-card">
+            <div class="party-top party-torch">
+              <span class="party-type">PARTY MEMBER 02 / TORCH</span>
+              <span class="party-label pink">TORCH — 감각 시각화형</span>
+              <h3 class="party-name">이상준</h3>
+            </div>
+            <div class="party-body">
+              <div class="party-meta">
+                <div class="party-meta-row"><span class="party-meta-label">AGE</span><span class="party-meta-value">23</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">MBTI</span><span class="party-meta-value">INFJ</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">COLOR</span><span class="party-meta-value">여름 뮤트</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">BIRTHDAY</span><span class="party-meta-value">05.03 / 황소</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">FAVORITE</span><span class="party-meta-value">향수</span></div>
+              </div>
+              <div class="party-tags">
+                <span class="party-tag">앙준</span>
+                <span class="party-tag">독서</span>
+                <span class="party-tag">회색</span>
+                <span class="party-tag">에메랄드</span>
+              </div>
+              <div class="party-role">
+                <span class="party-role-label">BEST ROLE</span>
+                <p class="party-role-text">무드보드, 감성적 시각화, 컬러 시스템 제안</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="party-card">
+            <div class="party-top party-radar">
+              <span class="party-type">PARTY MEMBER 03 / RADAR</span>
+              <span class="party-label green">RADAR — 실험 탐색형</span>
+              <h3 class="party-name">고지현</h3>
+            </div>
+            <div class="party-body">
+              <div class="party-meta">
+                <div class="party-meta-row"><span class="party-meta-label">AGE</span><span class="party-meta-value">23</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">MBTI</span><span class="party-meta-value">INFP</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">COLOR</span><span class="party-meta-value">봄웜 라이트</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">BIRTHDAY</span><span class="party-meta-value">10.15 / 천칭</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">FAVORITE</span><span class="party-meta-value">가방</span></div>
+              </div>
+              <div class="party-tags">
+                <span class="party-tag">보부상</span>
+                <span class="party-tag">기록하기</span>
+                <span class="party-tag">초록색</span>
+                <span class="party-tag">오팔</span>
+              </div>
+              <div class="party-role">
+                <span class="party-role-label">BEST ROLE</span>
+                <p class="party-role-text">아이디어 발산, 시안 기록, 콘셉트 확장</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="party-card">
+            <div class="party-top party-lens">
+              <span class="party-type">PARTY MEMBER 04 / LENS</span>
+              <span class="party-label orange">LENS — 디테일 완성형</span>
+              <h3 class="party-name">강지인</h3>
+            </div>
+            <div class="party-body">
+              <div class="party-meta">
+                <div class="party-meta-row"><span class="party-meta-label">AGE</span><span class="party-meta-value">23</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">MBTI</span><span class="party-meta-value">ENFJ</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">COLOR</span><span class="party-meta-value">여름 라이트</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">BIRTHDAY</span><span class="party-meta-value">02.14 / 물병</span></div>
+                <div class="party-meta-row"><span class="party-meta-label">FAVORITE</span><span class="party-meta-value">인형</span></div>
+              </div>
+              <div class="party-tags">
+                <span class="party-tag">지니</span>
+                <span class="party-tag">웹소설</span>
+                <span class="party-tag">보라색</span>
+                <span class="party-tag">자수정</span>
+              </div>
+              <div class="party-role">
+                <span class="party-role-label">BEST ROLE</span>
+                <p class="party-role-text">최종 정렬 점검, 소통 및 조율, 완성도 마감</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Digital Programming Project / Recruit Your Party</p>
+  </footer>
+</body>
+</html>
